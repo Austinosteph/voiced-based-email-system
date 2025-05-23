@@ -101,7 +101,6 @@ const Dashboard = () => {
 						)}
 					</TabsTrigger>
 					<TabsTrigger value="sent">Sent</TabsTrigger>
-					<TabsTrigger value="trash">Trash</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="inbox" className="space-y-4">
@@ -127,18 +126,27 @@ const Dashboard = () => {
 					)}
 				</TabsContent>
 
-				<TabsContent value="sent">
-					<div className="text-center py-12">
-						<p className="text-gray-500">Your sent emails will appear here.</p>
-					</div>
-				</TabsContent>
-
-				<TabsContent value="trash">
-					<div className="text-center py-12">
-						<p className="text-gray-500">
-							Your deleted emails will appear here.
-						</p>
-					</div>
+				<TabsContent value="sent" className="space-y-4">
+					{filteredEmails.length > 0 ? (
+						<div className="grid gap-2">
+							{filteredEmails.map((email) => (
+								<EmailItem
+									key={email.id}
+									email={email}
+									onClick={() => handleEmailClick(email)}
+								/>
+							))}
+						</div>
+					) : (
+						<div className="text-center py-12">
+							<p className="text-gray-500">No sent emails found.</p>
+							{searchTerm && (
+								<p className="text-sm text-gray-400 mt-2">
+									Try adjusting your search terms.
+								</p>
+							)}
+						</div>
+					)}
 				</TabsContent>
 			</Tabs>
 

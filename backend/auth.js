@@ -3,7 +3,7 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { google } = require('googleapis');
 require('dotenv').config();
 
-// your passport strategy setup here
+//passport strategy setup here
 passport.use(
 	new GoogleStrategy(
 		{

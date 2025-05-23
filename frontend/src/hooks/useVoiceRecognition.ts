@@ -1,15 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 
-// This is a custom hook for voice recognition
-// It uses the Web Speech API to recognize speech
-
 interface UseSpeechRecognitionProps {
 	onResult?: (transcript: string) => void;
 	onEnd?: () => void;
 	language?: string;
 }
 
-// Define the types for Speech Recognition
 interface SpeechRecognitionEvent extends Event {
 	resultIndex: number;
 	results: SpeechRecognitionResultList;
@@ -31,7 +27,7 @@ interface SpeechRecognitionAlternative {
 	transcript: string;
 }
 
-interface SpeechRecognition extends EventTarget {
+interface ISpeechRecognition extends EventTarget {
 	continuous: boolean;
 	interimResults: boolean;
 	lang: string;
@@ -45,11 +41,10 @@ interface SpeechRecognition extends EventTarget {
 	abort: () => void;
 }
 
-// Access the global SpeechRecognition object with proper type checks
 declare global {
 	interface Window {
-		SpeechRecognition?: typeof SpeechRecognition;
-		webkitSpeechRecognition?: typeof SpeechRecognition;
+		SpeechRecognition?: new () => ISpeechRecognition;
+		webkitSpeechRecognition?: new () => ISpeechRecognition;
 	}
 }
 
@@ -59,18 +54,19 @@ const useVoiceRecognition = ({
 	language = 'en-US',
 }: UseSpeechRecognitionProps = {}) => {
 	const [isListening, setIsListening] = useState(false);
-	const recognitionRef = useRef<SpeechRecognition | null>(null);
+	const [text, setText] = useState('');
+	const recognitionRef = useRef<ISpeechRecognition | null>(null);
 
-	const SpeechRecognition =
+	const SpeechRecognitionClass =
 		window.SpeechRecognition || window.webkitSpeechRecognition;
 
 	const startListening = () => {
-		if (!SpeechRecognition) {
+		if (!SpeechRecognitionClass) {
 			console.error('Speech recognition is not supported in this browser');
 			return;
 		}
 
-		recognitionRef.current = new SpeechRecognition();
+		recognitionRef.current = new SpeechRecognitionClass();
 		const recognition = recognitionRef.current;
 
 		recognition.continuous = true;
@@ -81,7 +77,7 @@ const useVoiceRecognition = ({
 			const transcript = Array.from(event.results)
 				.map((result) => result[0].transcript)
 				.join('');
-
+			setText(transcript);
 			onResult(transcript);
 		};
 
@@ -102,6 +98,10 @@ const useVoiceRecognition = ({
 		setIsListening(false);
 	};
 
+	const resetText = () => {
+		setText('');
+	};
+
 	useEffect(() => {
 		return () => {
 			if (recognitionRef.current) {
@@ -111,9 +111,11 @@ const useVoiceRecognition = ({
 	}, []);
 
 	return {
+		text,
 		isListening,
 		startListening,
 		stopListening,
+		resetText,
 	};
 };
 

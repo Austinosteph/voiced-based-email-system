@@ -106,12 +106,6 @@ const Login = () => {
 						</p>
 					</CardFooter>
 				</Card>
-
-				<div className="mt-6 text-center text-sm text-gray-500">
-					<p>For demo purposes, use:</p>
-					<p className="font-medium">Email: demo@example.com</p>
-					<p className="font-medium">Password: password123</p>
-				</div>
 			</div>
 		</div>
 	);

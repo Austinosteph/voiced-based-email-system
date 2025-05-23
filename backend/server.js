@@ -38,8 +38,8 @@ app.use(
 		saveUninitialized: false,
 		cookie: {
 			httpOnly: true,
-			secure: false, // ✅ must be false for localhost (no HTTPS)
-			sameSite: 'lax', // ✅ allow cross-site requests from frontend
+			secure: false,
+			sameSite: 'lax',
 		},
 	})
 );
@@ -107,15 +107,14 @@ app.post('/api/login', async (req, res) => {
 			expiresIn: '1h',
 		});
 
-		// Remove password before sending user back
 		const { password: _, ...safeUser } = user._doc;
 
 		// ✅ Set the token as an HTTP-only cookie
 		res.cookie('token', token, {
 			httpOnly: true,
-			secure: false, // true in production (HTTPS)
+			secure: false,
 			sameSite: 'lax',
-			maxAge: 3600000, // 1 hour
+			maxAge: 3600000,
 		});
 
 		res.json({ token, user: safeUser });
@@ -154,7 +153,6 @@ app.get(
 			expiresIn: '1h',
 		});
 
-		// Set the cookie
 		res.cookie('token', token, {
 			httpOnly: true,
 			secure: false,
@@ -162,7 +160,6 @@ app.get(
 			maxAge: 3600000,
 		});
 
-		// Redirect with access and refresh tokens
 		res.redirect(
 			`http://localhost:8080/dashboard?access_token=${accessToken}&refresh_token=${refreshToken}`
 		);
@@ -182,7 +179,7 @@ app.post('/gmail/send', async (req, res) => {
 		let googleAccessToken;
 
 		if (token.startsWith('ya29.') || token.length > 300) {
-			googleAccessToken = token; // Google access token
+			googleAccessToken = token;
 		} else {
 			return res.status(401).send('Google access token required');
 		}
@@ -205,7 +202,7 @@ app.post('/gmail/send', async (req, res) => {
 			`Subject: ${subject}`,
 			'',
 			body,
-		].join('\r\n'); // use CRLF line endings
+		].join('\r\n');
 
 		const encodedMessage = Buffer.from(message)
 			.toString('base64')
@@ -263,6 +260,44 @@ app.get('/gmail/inbox', async (req, res) => {
 	} catch (err) {
 		console.error('Error fetching inbox:', err.message);
 		res.status(500).send('Failed to fetch inbox');
+	}
+});
+
+//sent emails
+app.get('/gmail/sent', async (req, res) => {
+	const token = req.headers.authorization?.split(' ')[1];
+	if (!token) return res.status(401).send('Missing access token');
+
+	const gmail = getGmailClient(token);
+
+	try {
+		const response = await gmail.users.messages.list({
+			userId: 'me',
+			labelIds: ['SENT'],
+			maxResults: 10,
+		});
+
+		const messages = await Promise.all(
+			(response.data.messages || []).map((msg) =>
+				gmail.users.messages.get({ userId: 'me', id: msg.id })
+			)
+		);
+
+		const parsed = messages.map(({ data }) => ({
+			id: data.id,
+			sender: data.payload.headers.find((h) => h.name === 'From')?.value || '',
+			recipient: data.payload.headers.find((h) => h.name === 'To')?.value || '',
+			subject:
+				data.payload.headers.find((h) => h.name === 'Subject')?.value || '',
+			body: data.snippet,
+			date: data.internalDate,
+			read: !(data.labelIds || []).includes('UNREAD'),
+		}));
+
+		res.json(parsed);
+	} catch (err) {
+		console.error('Error fetching sent messages:', err.message);
+		res.status(500).send('Failed to fetch sent emails');
 	}
 });
 
