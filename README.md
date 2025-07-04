@@ -1,0 +1,1 @@
+This project is a voice-controlled email system designed to assist visually impaired users in managing their emails hands-free. It leverages speech recognition and text-to-speech technologies to create an accessible communication tool that supports composing, reading, and managing emails via voice commands.
