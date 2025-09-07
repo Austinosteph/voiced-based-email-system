@@ -161,7 +161,7 @@ app.get(
 		});
 
 		res.redirect(
-			`http://localhost:8080/dashboard?access_token=${accessToken}&refresh_token=${refreshToken}`
+			`http://localhost:8080/?access_token=${accessToken}&refresh_token=${refreshToken}`
 		);
 	}
 );
@@ -228,12 +228,12 @@ app.post('/gmail/send', async (req, res) => {
 
 //inbox
 app.get('/gmail/inbox', async (req, res) => {
-	const token = req.headers.authorization?.split(' ')[1];
-	if (!token) return res.status(401).send('Missing access token');
-
-	const gmail = getGmailClient(token);
-
 	try {
+		const token = req.headers.authorization?.split(' ')[1];
+		if (!token) return res.status(401).send('Missing access token');
+
+		const gmail = getGmailClient(token);
+
 		const response = await gmail.users.messages.list({
 			userId: 'me',
 			labelIds: ['INBOX'],
@@ -246,15 +246,28 @@ app.get('/gmail/inbox', async (req, res) => {
 			)
 		);
 
-		const parsed = messages.map(({ data }) => ({
-			id: data.id,
-			sender: data.payload.headers.find((h) => h.name === 'From')?.value || '',
-			subject:
-				data.payload.headers.find((h) => h.name === 'Subject')?.value || '',
-			body: data.snippet,
-			date: data.internalDate,
-			read: !(data.labelIds || []).includes('UNREAD'),
-		}));
+		const parsed = messages.map(({ data }) => {
+			const headers = data.payload.headers || [];
+			let body = '';
+
+			if (data.payload.parts) {
+				const part = data.payload.parts.find(
+					(p) => p.mimeType === 'text/plain'
+				);
+				body = part?.body?.data
+					? Buffer.from(part.body.data, 'base64').toString('utf-8')
+					: '';
+			}
+
+			return {
+				id: data.id,
+				sender: headers.find((h) => h.name === 'From')?.value || '',
+				subject: headers.find((h) => h.name === 'Subject')?.value || '',
+				body: body || data.snippet || '',
+				date: data.internalDate,
+				read: !(data.labelIds || []).includes('UNREAD'),
+			};
+		});
 
 		res.json(parsed);
 	} catch (err) {

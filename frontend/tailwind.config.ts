@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -53,12 +52,26 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				email: {
-					primary: "#4263EB",
-					secondary: "#7048E8",
-					accent: "#5F3DC4",
-					light: "#EDF2FF",
-					dark: "#364FC7"
+				voice: {
+					active: 'hsl(var(--voice-active))',
+					listening: 'hsl(var(--voice-listening))',
+					speaking: 'hsl(var(--voice-speaking))'
+				},
+				focus: {
+					ring: 'hsl(var(--focus-ring))',
+					bg: 'hsl(var(--focus-bg))'
+				},
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--success-foreground))'
+				},
+				warning: {
+					DEFAULT: 'hsl(var(--warning))',
+					foreground: 'hsl(var(--warning-foreground))'
+				},
+				info: {
+					DEFAULT: 'hsl(var(--info))',
+					foreground: 'hsl(var(--info-foreground))'
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
@@ -92,25 +105,11 @@ export default {
 					to: {
 						height: '0'
 					}
-				},
-				'mic-pulse': {
-					'0%, 100%': {
-						transform: 'scale(1)',
-						opacity: '1'
-					},
-					'50%': {
-						transform: 'scale(1.1)',
-						opacity: '0.8'
-					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out',
-				'mic-pulse': 'mic-pulse 1.5s ease-in-out infinite'
-			},
-			fontFamily: {
-				sans: ['Inter', 'sans-serif']
+				'accordion-up': 'accordion-up 0.2s ease-out'
 			}
 		}
 	},
